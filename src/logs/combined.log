@@ -1,0 +1,11 @@
+{"level":"info","message":"MongoDB connected: ac-pvz5i4h-shard-00-00.jnznjh6.mongodb.net","timestamp":"2026-09-16T06:30:41.081Z"}
+{"level":"info","message":"This is an INFO test","timestamp":"2026-09-16T06:30:41.086Z"}
+{"level":"warn","message":"This is a WARN test","timestamp":"2026-09-16T06:30:41.087Z"}
+{"level":"error","message":"This is an ERROR test","timestamp":"2026-09-16T06:30:41.087Z"}
+{"level":"info","message":"Server running in development mode on port 5000 at url http://127.0.0.1:5000","timestamp":"2026-09-16T06:30:41.101Z"}
+{"level":"info","message":"Server running in development mode on port 5000 at url http://127.0.0.1:5000","timestamp":"2026-09-16T06:32:50.976Z"}
+{"level":"info","message":"Server running in development mode on port 5000 at url http://127.0.0.1:5000","timestamp":"2026-09-16T06:39:23.066Z"}
+{"level":"info","message":"Server running in development mode on port 5000 at url http://127.0.0.1:5000","timestamp":"2026-09-27T05:55:40.461Z"}
+{"level":"info","message":"Server running in development mode on port 5000 at url http://127.0.0.1:5000","timestamp":"2026-09-27T05:55:53.120Z"}
+{"level":"info","message":"Server running in development mode on port 5000 at url http://127.0.0.1:5000","timestamp":"2026-09-27T06:01:03.508Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully...","timestamp":"2026-09-27T06:01:10.260Z"}
