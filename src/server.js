@@ -1,13 +1,18 @@
 import {env} from './config/env.js';
 import {createApp} from './app.js';
 import {connectDB,disconnectDB  } from './config/database.js';
+import {registerDependencies} from './config/container.js';
+import {registerListeners} from './events/registerListeners.js';
 import {logger} from './logs/logger.js';
+import { container } from './config/container.js';
 
 let server;
 
 async function startServer() {
   try {
     await connectDB();
+    registerDependencies();
+    registerListeners(container);
     const app = createApp();
     server = app.listen(env.PORT, () => {
       logger.info(`Server running in ${env.NODE_ENV} mode on port ${env.PORT} at url http://127.0.0.1:${env.PORT}`);

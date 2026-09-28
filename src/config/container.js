@@ -1,16 +1,19 @@
+import { logger } from '../logs/logger.js';
+import { EventBus } from '../events/eventBus.js';
+import { env } from './env.js'; // adjust if your env.js exports differently
+import { createMailerClient } from '../integrations/mailer.client.js';
+import { EmailService } from '../services/email.service.js';
+import { emailTemplates } from '../templates/emails/index.js';
+import { UserModel } from '../models/user.model.js';
+import { UserRepository } from '../repositories/user.repository.js';
+import { AuthService } from '../services/auth.service.js';
+
 /**
  * A minimal Dependency Injection container.
  *
- * The idea: instead of a service file doing
- *   import { userRepository } from '../repositories/user.repository.js'
- * (a hard-coded dependency), it receives its dependencies as constructor
- * arguments. This container is the ONE place responsible for deciding
- * *which* concrete implementation to hand over, and in what order to
- * build everything.
- *
  * Two registration styles:
  *   - registerValue(name, value)   -> for things that already exist
- *                                      (a config object, a logger, a mongoose model)
+ *                                      (a config object, a mongoose model)
  *   - registerFactory(name, fn, {singleton}) -> for things that need to be
  *                                      *constructed*, and may themselves
  *                                      depend on other registered things
@@ -21,12 +24,6 @@
  *   container.registerFactory(
  *     'userRepository',
  *     (c) => new UserRepository(c.resolve('UserModel')),
- *     { singleton: true }
- *   );
- *
- *   container.registerFactory(
- *     'authService',
- *     (c) => new AuthService(c.resolve('userRepository'), c.resolve('eventBus')),
  *     { singleton: true }
  *   );
  */
@@ -69,7 +66,6 @@ export class Container {
       return instance;
     }
 
-    // Non-singleton: build a fresh instance every time it's resolved
     return registration.factory(this);
   }
 
@@ -83,47 +79,65 @@ export class Container {
 export const container = new Container();
 
 /**
- * Registers every dependency the app needs. Called once at boot,
- * from server.js, AFTER the DB connection is established (since some
- * registrations will need mongoose models to already be compiled).
+ * Registers every dependency the app needs. Called once at boot, from
+ * server.js, AFTER the DB connection is established.
  *
- * Build this up incrementally as you add each vertical slice — don't
- * try to fill it in all at once before you've built the pieces.
- *
- * Example of how this file will grow:
- *
- *   import { UserModel } from '../models/user.model.js';
- *   import { UserRepository } from '../repositories/user.repository.js';
- *   import { AuthService } from '../services/auth.service.js';
- *   import { eventBus } from '../events/eventBus.js';
- *
- *   export function registerDependencies() {
- *     container.registerValue('UserModel', UserModel);
- *     container.registerValue('eventBus', eventBus);
- *
- *     container.registerFactory(
- *       'userRepository',
- *       (c) => new UserRepository(c.resolve('UserModel'))
- *     );
- *
- *     container.registerFactory(
- *       'authService',
- *       (c) => new AuthService(c.resolve('userRepository'), c.resolve('eventBus'))
- *     );
- *   }
- *
- * Then in a controller file:
- *
- *   import { container } from '../config/container.js';
- *   const authService = container.resolve('authService');
- *
- *   export const register = catchAsync(async (req, res) => {
- *     const user = await authService.register(req.body);
- *     res.status(201).json({ success: true, data: user });
- *   });
+ * Order matters within this function: register things with NO
+ * dependencies first (logger), then things that depend on them
+ * (eventBus depends on logger), and so on down the chain. The
+ * container doesn't auto-sort this for you — YOU decide the order,
+ * which is exactly the kind of thing worth being able to explain.
  */
 export function registerDependencies() {
-  // Intentionally empty for now — fill in as each layer gets built.
-  // Keeping this function (rather than registering inline wherever)
-  // means server.js has one clear call: registerDependencies().
+  // --- Infrastructure (no dependencies of their own) ---
+  container.registerValue('logger', logger);
+  // Swap the line above for your winston logger — this container code
+  // doesn't change, only what `logger.js` exports changes.
+
+  // --- Things that depend on infrastructure ---
+  container.registerFactory('eventBus', (c) => new EventBus(c.resolve('logger')));
+
+  // --- Email (Brevo via SMTP) ---
+  container.registerValue('config', env);
+  container.registerFactory('mailer', (c) => createMailerClient(c.resolve('config')));
+  container.registerFactory(
+    'emailService',
+    (c) =>
+      new EmailService({
+        mailer: c.resolve('mailer'),
+        logger: c.resolve('logger'),
+        from: c.resolve('config').EMAIL_FROM,
+        templates: emailTemplates,
+      })
+  );
+
+  // --- Auth: model -> repository -> service (each built from the previous) ---
+  container.registerValue('UserModel', UserModel);
+  container.registerFactory('userRepository', (c) => new UserRepository(c.resolve('UserModel')));
+  container.registerFactory(
+    'authService',
+    (c) =>
+      new AuthService({
+        userRepository: c.resolve('userRepository'),
+        eventBus: c.resolve('eventBus'),
+      })
+  );
+
+  // Fill in the rest as each layer gets built, e.g.:
+  //
+  //   import { UserModel } from '../models/user.model.js';
+  //   import { UserRepository } from '../repositories/user.repository.js';
+  //   import { AuthService } from '../services/auth.service.js';
+  //
+  //   container.registerValue('UserModel', UserModel);
+  //
+  //   container.registerFactory(
+  //     'userRepository',
+  //     (c) => new UserRepository(c.resolve('UserModel'))
+  //   );
+  //
+  //   container.registerFactory(
+  //     'authService',
+  //     (c) => new AuthService(c.resolve('userRepository'), c.resolve('eventBus'))
+  //   );
 }

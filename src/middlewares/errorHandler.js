@@ -36,19 +36,19 @@ const handleValidationError = (err) => {
 
 // ────────────────────────── PRISMA CONVERTERS ──────────────────────────
 
-const handlePrismaError = (err) => {
-  if (err.code === 'P2002') {
-    const field = err.meta?.target?.[0] || 'field';
-    return new AppError(`${field} already exists`, 400);
-  }
-  if (err.code === 'P2025') {
-    return new AppError('Record not found', 404);
-  }
-  if (err.code === 'P2003') {
-    return new AppError('Invalid reference — related record does not exist', 400);
-  }
-  return new AppError('Database error', 500);
-};
+// const handlePrismaError = (err) => {
+//   if (err.code === 'P2002') {
+//     const field = err.meta?.target?.[0] || 'field';
+//     return new AppError(`${field} already exists`, 400);
+//   }
+//   if (err.code === 'P2025') {
+//     return new AppError('Record not found', 404);
+//   }
+//   if (err.code === 'P2003') {
+//     return new AppError('Invalid reference — related record does not exist', 400);
+//   }
+//   return new AppError('Database error', 500);
+// };
 
 // ─────────────────────────── JWT CONVERTERS ────────────────────────────
 // Keep these regardless of DB/ORM choice — only relevant if you use JWT auth.
