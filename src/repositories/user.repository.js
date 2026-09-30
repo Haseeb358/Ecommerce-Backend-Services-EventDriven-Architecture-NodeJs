@@ -20,4 +20,7 @@ export class UserRepository {
   create(data) {
     return this.#User.create(data);
   }
+  updateById(id, data) {
+    return this.#User.findByIdAndUpdate(id, data, { new: true });
+  }
 }

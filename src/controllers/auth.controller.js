@@ -14,5 +14,13 @@ export function createAuthController({ authService }) {
         data: { user },
       });
     }),
+    verifyOtp: catchAsync(async (req, res) => {
+      const user = await authService.verifyOtp(req.body);
+      res.status(200).json({
+        success: true,
+        message: 'OTP verified successfully.',
+        data: { user },
+      });
+    }),
   };
 }

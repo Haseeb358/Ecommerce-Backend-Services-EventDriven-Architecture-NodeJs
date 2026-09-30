@@ -53,4 +53,29 @@ export class AuthService {
 
     return user; // toJSON strips secrets
   }
+
+  async verifyOtp({ email, otp }) {
+    const user = await this.#userRepository.findByEmail(email).select('+otpHash +otpExpiresAt');
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+    console.log('otp:', otp);
+    const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+    if (user.otpHash !== otpHash) {
+      throw new AppError('Invalid OTP', 400);
+    }
+
+    if (user.otpExpiresAt < new Date()) {
+      throw new AppError('OTP has expired', 400);
+    }
+
+    // Mark the user as verified
+    let updatedUser = await this.#userRepository.updateById(user.id, { isEmailVerified: true, otpHash: null, otpExpiresAt: null });
+
+    // Announce the verification
+    this.#eventBus.publish(EVENTS.OTP_VERIFIED, { userId: user.id });
+
+    return updatedUser; // toJSON strips secrets
+  }
+
 }
