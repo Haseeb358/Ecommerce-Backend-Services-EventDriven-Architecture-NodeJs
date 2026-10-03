@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import notFound from './middlewares/notFound.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { container } from './config/container.js';
@@ -18,6 +19,7 @@ export function createApp() {
   app.use(helmet());
   app.use(cors());
   app.use(morgan('dev'));
+  app.use(cookieParser());
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));

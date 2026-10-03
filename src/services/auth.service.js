@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
+import jwt from 'jsonwebtoken';
 import AppError  from '../errors/AppError.js';
 import { EVENTS } from '../events/eventTypes.js';
 
@@ -14,10 +15,12 @@ const OTP_EXPIRES_MINUTES = 10;
 export class AuthService {
   #userRepository;
   #eventBus;
+  #env
 
-  constructor({ userRepository, eventBus }) {
+  constructor({ userRepository, eventBus,env }) {
     this.#userRepository = userRepository;
     this.#eventBus = eventBus;
+    this.#env = env;
   }
 
   async register({ name, email, password }) {
@@ -76,6 +79,34 @@ export class AuthService {
     this.#eventBus.publish(EVENTS.OTP_VERIFIED, { userId: user.id });
 
     return updatedUser; // toJSON strips secrets
+  }
+
+  async login({ email, password }) {
+
+    console.log(email, password);
+
+    const user = await this.#userRepository.findByEmail(email).select('+password');
+    if (!user) {
+      throw new AppError('Invalid email', 401);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError('Invalid password', 401);
+    }
+
+    if (!user.isEmailVerified) {
+      throw new AppError('Email not verified', 403);
+    }
+
+    const token = this.generateJwtToken({ id: user._id,role: user.role });
+
+    return { token, user }; // toJSON strips secrets
+
+  }
+
+  generateJwtToken(data) {
+    return jwt.sign({ ...data }, this.#env.JWT_SECRET, { expiresIn: this.#env.JWT_EXPIRES_IN });
   }
 
 }

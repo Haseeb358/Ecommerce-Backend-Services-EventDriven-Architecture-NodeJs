@@ -6,5 +6,6 @@ export function createAuthRoutes({ authController }) {
   const router = Router();
   router.post('/register', validate(registerSchema), authController.register);
   router.patch('/verify-otp', authController.verifyOtp);
+  router.post('/login', authController.login);
   return router;
 }

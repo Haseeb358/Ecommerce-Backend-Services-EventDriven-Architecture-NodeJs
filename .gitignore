@@ -2,3 +2,6 @@ node_modules/
 .env
 # add logs files
 src/logs/*.log
+products.json
+products.import.json
+scripts/*.js

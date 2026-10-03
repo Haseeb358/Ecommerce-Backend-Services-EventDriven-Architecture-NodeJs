@@ -120,6 +120,7 @@ export function registerDependencies() {
       new AuthService({
         userRepository: c.resolve('userRepository'),
         eventBus: c.resolve('eventBus'),
+        env: c.resolve('config'),
       })
   );
 
