@@ -1,16 +1,18 @@
 import  AppError  from '../errors/AppError.js';
 
-/**
- * validate(schema) -> middleware that checks req.body against a zod schema.
- * On success, req.body is replaced with the cleaned/parsed data
- * (trimmed, lowercased, unknown fields stripped).
- */
-export const validate = (schema) => (req, res, next) => {
-  const result = schema.safeParse(req.body);
+
+
+
+// source: 'query' | 'params' | 'body'
+export const validate = (schema, source = 'query') => (req, res, next) => {
+  const result = schema.safeParse(req[source]);
   if (!result.success) {
-    const message = result.error.issues.map((i) => i.message).join(', ');
-    return next(new AppError(message, 400));
+    const details = result.error.issues.map((i) => ({
+      field: i.path.join('.'),
+      message: i.message,
+    }));
+    return next(new AppError(`Validation failed: ${JSON.stringify(details)}`, 400));
   }
-  req.body = result.data;
+  req.validated = { ...req.validated, [source]: result.data };
   next();
 };

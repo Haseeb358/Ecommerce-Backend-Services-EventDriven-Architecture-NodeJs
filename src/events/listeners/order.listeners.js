@@ -6,6 +6,6 @@ export function registerOrderListeners(container) {
 
   eventBus.subscribe(EVENTS.ORDER_CREATED, async ({ orderId }) => {
     logger.info(`[order.listeners] ORDER_CREATED received for order ${orderId}`);
-    // Stock decrement: do it inside the order's DB transaction, not here.
+    
   });
 }

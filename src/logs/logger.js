@@ -1,6 +1,4 @@
-// logger.js
-// Structured logging with Winston. Replaces console.error everywhere.
-// Install first: npm install winston
+
 
 import winston from 'winston';
 

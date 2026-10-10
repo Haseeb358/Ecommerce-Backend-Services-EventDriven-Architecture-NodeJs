@@ -1,16 +1,6 @@
 import { EVENTS } from '../eventTypes.js';
 
-/**
- * Email listeners: "when X happens, send email Y".
- * Services only publish events; they never import EmailService.
- *
- * SECURITY: never log these payloads — they contain OTPs / reset links.
- *
- * Payload shapes (the publisher must send exactly these):
- *   OTP_REQUESTED             { email, name, otp, expiresInMinutes }
- *   PASSWORD_RESET_REQUESTED  { email, name, resetUrl, expiresInMinutes }
- *   ORDER_CREATED             { email, name, orderId, items, total, currency }
- */
+
 export function registerEmailListeners(container) {
   const eventBus = container.resolve('eventBus');
   const emailService = container.resolve('emailService');

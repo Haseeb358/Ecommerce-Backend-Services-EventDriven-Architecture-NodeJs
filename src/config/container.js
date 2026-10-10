@@ -7,26 +7,10 @@ import { emailTemplates } from '../templates/emails/index.js';
 import { UserModel } from '../models/user.model.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { AuthService } from '../services/auth.service.js';
+import { ProductModel } from '../models/product.model.js';
+import { ProductRepository } from '../repositories/product.repository.js';
+import { ProductService } from '../services/product.service.js';
 
-/**
- * A minimal Dependency Injection container.
- *
- * Two registration styles:
- *   - registerValue(name, value)   -> for things that already exist
- *                                      (a config object, a mongoose model)
- *   - registerFactory(name, fn, {singleton}) -> for things that need to be
- *                                      *constructed*, and may themselves
- *                                      depend on other registered things
- *
- * A factory function receives the container itself, so it can pull its
- * own dependencies out by name:
- *
- *   container.registerFactory(
- *     'userRepository',
- *     (c) => new UserRepository(c.resolve('UserModel')),
- *     { singleton: true }
- *   );
- */
 export class Container {
   #registrations = new Map(); // name -> { factory, singleton }
   #singletonCache = new Map(); // name -> already-built instance
@@ -78,26 +62,15 @@ export class Container {
 // never creates its own `new Container()`.
 export const container = new Container();
 
-/**
- * Registers every dependency the app needs. Called once at boot, from
- * server.js, AFTER the DB connection is established.
- *
- * Order matters within this function: register things with NO
- * dependencies first (logger), then things that depend on them
- * (eventBus depends on logger), and so on down the chain. The
- * container doesn't auto-sort this for you — YOU decide the order,
- * which is exactly the kind of thing worth being able to explain.
- */
 export function registerDependencies() {
-  // --- Infrastructure (no dependencies of their own) ---
+ 
   container.registerValue('logger', logger);
-  // Swap the line above for your winston logger — this container code
-  // doesn't change, only what `logger.js` exports changes.
+  
 
-  // --- Things that depend on infrastructure ---
+
   container.registerFactory('eventBus', (c) => new EventBus(c.resolve('logger')));
 
-  // --- Email (Brevo via SMTP) ---
+  
   container.registerValue('config', env);
   container.registerFactory('mailer', (c) => createMailerClient(c.resolve('config')));
   container.registerFactory(
@@ -124,21 +97,21 @@ export function registerDependencies() {
       })
   );
 
-  // Fill in the rest as each layer gets built, e.g.:
-  //
-  //   import { UserModel } from '../models/user.model.js';
-  //   import { UserRepository } from '../repositories/user.repository.js';
-  //   import { AuthService } from '../services/auth.service.js';
-  //
-  //   container.registerValue('UserModel', UserModel);
-  //
-  //   container.registerFactory(
-  //     'userRepository',
-  //     (c) => new UserRepository(c.resolve('UserModel'))
-  //   );
-  //
-  //   container.registerFactory(
-  //     'authService',
-  //     (c) => new AuthService(c.resolve('userRepository'), c.resolve('eventBus'))
-  //   );
+  // Products
+
+   container.registerValue("productsModel",ProductModel);
+   container.registerFactory("productRepository",(c)=>new ProductRepository(c.resolve("productsModel")))
+   container.registerFactory(
+    'productService',
+    (c) =>
+      new ProductService({
+        ProductRepository: c.resolve('productRepository'),
+        eventBus: c.resolve('eventBus'),
+        env: c.resolve('config'),
+      })
+  );
+   
+
+
+  
 }

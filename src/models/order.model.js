@@ -1,25 +1,6 @@
 import mongoose from 'mongoose';
 
-/**
- * Design notes:
- * - `items` is a SNAPSHOT of what was bought: name, price, size, quantity
- *   are copied in at order time, not referenced live from Product. If
- *   you change a product's price tomorrow, past orders must still show
- *   what the customer actually paid — never compute an old order's
- *   total from the current product price.
- * - `product` still keeps a ref, for convenience (e.g. "buy again",
- *   admin links back to the product) — but it's a reference for
- *   NAVIGATION only, never for recalculating totals.
- * - `status` is the order lifecycle. `paymentStatus` is deliberately
- *   separate (not folded into `status`) because payment and
- *   fulfillment are two different concerns that change independently
- *   — you can be `processing` fulfillment while `paid`, or `pending`
- *   payment while the order already exists in `created` status.
- * - Money fields are stored in the smallest currency unit (integer
- *   cents) is the "correct" production approach, avoiding float
- *   rounding errors — but for a learning project, plain Number with
- *   2 decimal places is fine and easier to read; just be consistent.
- */
+
 const orderItemSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },

@@ -1,21 +1,6 @@
 import mongoose from 'mongoose';
 
-/**
- * Design notes:
- * - One Payment document per Stripe PaymentIntent. `order` is a
- *   one-to-one link via a UNIQUE index — one payment attempt record
- *   per order (if you later support retries on a failed payment,
- *   relax this to one-to-many and query the latest).
- * - `providerPaymentId` (Stripe's PaymentIntent id, e.g. "pi_123") has
- *   its OWN unique index. This is what makes your Stripe webhook
- *   handler IDEMPOTENT: Stripe can and will send the same webhook
- *   event more than once. Before updating anything, look this record
- *   up by `providerPaymentId`; if its status is already 'succeeded',
- *   do nothing and return 200 — don't re-process it.
- * - `rawEvent` stores the last webhook payload Stripe sent, mainly for
- *   debugging during development. Fine to keep for a learning project;
- *   a production system would be more selective about what it logs.
- */
+
 const PAYMENT_STATUSES = ['pending', 'succeeded', 'failed', 'refunded'];
 
 const paymentSchema = new mongoose.Schema(

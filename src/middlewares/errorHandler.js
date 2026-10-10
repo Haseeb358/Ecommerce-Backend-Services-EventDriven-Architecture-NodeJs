@@ -1,21 +1,4 @@
-/**
- * errorHandler.js
- *
- * The single, centralized place that decides what every client sees
- * when something goes wrong. MUST be registered LAST in app.js,
- * after notFound.js and all routes.
- *
- * Flow:
- *   raw error (Mongoose/Prisma/JWT/bug) -> converted to AppError
- *   -> isOperational check -> real message (safe) or generic message (hidden)
- *
- * This file includes converters for BOTH Mongoose and Prisma.
- * MONGOOSE IS ACTIVE BY DEFAULT.
- * If your project uses Prisma instead, comment out the "MONGOOSE" block
- * inside the exported handler below and uncomment the "PRISMA" block.
- * If your project uses neither (e.g. plain SQL / another ORM), remove
- * whichever you don't need and add your own converter the same way.
- */
+
 
 import { logger } from '../logs/logger.js';
 import AppError from '../errors/AppError.js';

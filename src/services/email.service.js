@@ -1,8 +1,4 @@
-/**
- * EmailService = the "what to send" layer. It receives its dependencies
- * (mailer transport, logger, config, templates) through the constructor
- * — nothing is imported directly, so tests can pass fakes.
- */
+
 export class EmailService {
   #mailer;
   #logger;

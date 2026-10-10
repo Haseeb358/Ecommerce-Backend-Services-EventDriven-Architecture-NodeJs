@@ -7,11 +7,7 @@ import { EVENTS } from '../events/eventTypes.js';
 const BCRYPT_ROUNDS = 12;
 const OTP_EXPIRES_MINUTES = 10;
 
-/**
- * Business logic for authentication. Knows nothing about req/res (HTTP)
- * or Mongoose (DB). It only talks to the repository and the event bus,
- * both injected.
- */
+
 export class AuthService {
   #userRepository;
   #eventBus;
@@ -83,7 +79,7 @@ export class AuthService {
 
   async login({ email, password }) {
 
-    console.log(email, password);
+   
 
     const user = await this.#userRepository.findByEmail(email).select('+password');
     if (!user) {

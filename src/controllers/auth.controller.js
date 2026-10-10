@@ -1,10 +1,7 @@
 import e from 'express';
 import { catchAsync } from '../utils/catchAsync.js';
 
-/**
- * Controller = HTTP only. Read req, call ONE service method, shape res.
- * The service is injected, not imported.
- */
+
 export function createAuthController({ authService }) {
   return {
     register: catchAsync(async (req, res) => {
@@ -24,9 +21,10 @@ export function createAuthController({ authService }) {
       });
     }),
     login: catchAsync(async (req, res) => {
+      console.log("Login req.validated:", req.validated);
       const data = await authService.login(req.body);
 
-      // set cookie with JWT token
+     
 
       res.cookie('token', data.token, {
         httpOnly: true,
