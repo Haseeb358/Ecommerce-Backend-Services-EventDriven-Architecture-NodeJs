@@ -10,6 +10,11 @@ import { AuthService } from '../services/auth.service.js';
 import { ProductModel } from '../models/product.model.js';
 import { ProductRepository } from '../repositories/product.repository.js';
 import { ProductService } from '../services/product.service.js';
+import { OrderRepository } from '../repositories/order.repository.js';
+import { OrderService } from '../services/order.service.js';
+import { TransactionManager } from '../utils/TransactionManager.js';
+import { OrderModel } from '../models/order.model.js';
+import mongoose from 'mongoose';
 
 export class Container {
   #registrations = new Map(); // name -> { factory, singleton }
@@ -111,7 +116,25 @@ export function registerDependencies() {
       })
   );
    
+  container.registerValue("orderModel",OrderModel);
+  container.registerFactory("orderRepository",(c)=>new OrderRepository(c.resolve("orderModel")))
+  container.registerValue("dbconnection",mongoose.connection);
+  container.registerFactory(
+    'transactionManager',
+    (c) => new TransactionManager(c.resolve('dbconnection'))
+  );
+ 
+ container.registerFactory(
+    'orderService',
+    (c) =>
+      new OrderService({
+        orderRepository: c.resolve('orderRepository'),
+        ProductRepository: c.resolve('productRepository'),
+        UserRepository: c.resolve('userRepository'),
+        TransactionManager: c.resolve('transactionManager'),
+        eventBus: c.resolve('eventBus'),
+        env: c.resolve('config'),
+      })
+  );
 
-
-  
 }

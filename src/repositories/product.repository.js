@@ -49,6 +49,38 @@ export class ProductRepository extends BaseRepository {
       select: '-__v',
     });
   }
+  
+  baseFilter() {
+    return { isActive: true };
+  }
 
+  findByIds(ids, { session } = {}) {
+    return this.#Product .find({ _id: { $in: ids }, ...this.baseFilter() })
+      .session(session ?? null)
+      .lean();
+  }
+
+   async decrementStock(productId, size, quantity, { session } = {}) {
+    const result = await this.#Product.updateOne(
+      {
+        _id: productId,
+        ...this.baseFilter(),
+        variants: { $elemMatch: { size, stock: { $gte: quantity } } },
+      },
+      { $inc: { 'variants.$.stock': -quantity } },
+      { session }
+    );
+    return result.modifiedCount === 1;
+  }
+
+  /** Give stock back (order cancelled). No isActive filter: restock even if the product was unpublished since. */
+  async incrementStock(productId, size, quantity, { session } = {}) {
+    const result = await this.#Product.updateOne(
+      { _id: productId, 'variants.size': size },
+      { $inc: { 'variants.$.stock': quantity } },
+      { session }
+    );
+    return result.modifiedCount === 1;
+  }
 
 }

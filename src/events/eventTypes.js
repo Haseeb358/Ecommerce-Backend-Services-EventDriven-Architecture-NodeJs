@@ -14,4 +14,6 @@ export const EVENTS = {
   PAYMENT_FAILED: 'payment.failed',
 
   STOCK_LOW: 'stock.low',
+  ORDER_CREATED: 'order.created',
+  ORDER_CANCELLED: 'order.cancelled',
 };
